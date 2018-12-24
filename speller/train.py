@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-
+This is a training routine for the P3 speller. Participants are asked
+to attend to a certain letter on a grid. Each grid that is generated
+is treated as a stand along instance, so is designed to save each
+instance as an epoch.
 """
 
-import pygame
-import random
+import pygame, random
 
-def speller(msg="hello world", duration=5):
+def train():
 
     #we will use this function to write the letters
     def write(msg, colour=(30,144,255)):
@@ -45,20 +47,14 @@ def speller(msg="hello world", duration=5):
     length = screenrect.width / columns
     height = screenrect.height / lines
 
-    oldhighlight = 0 #we will use this variable to store old previously highlighted values
+    oldhighlight = 0
 
-    #pygame uses a main loop to generate the interface
-    while mainloop:
-        milliseconds = clock.tick(FPS)  # milliseconds passed since last frame
-        seconds = milliseconds / 1000.0 # seconds passed since last frame
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                mainloop = False # pygame window closed by user
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    mainloop = False # user pressed ESC
-
-        #generate the uncoloured frame
+    numtrials = 100
+    targets = [[1,3],[3,2],[4,1],[2,3],[4,4]]
+    targetcounter = 0
+    
+    #generate uncoloured frame
+    def makeStandard():
         for y in range(lines):
             for x in range(columns):
                 textsurface = write(grid[y][x])
@@ -67,7 +63,18 @@ def speller(msg="hello world", duration=5):
         screen.blit(background, (0,0))
         pygame.display.flip()
 
-        #generate the highlighted frame
+    def makeTarget(target):
+        for y in range(lines):
+            for x in range(columns):
+                if y == target[0] and x == target[1]:
+                    textsurface = write(grid[y][x],(255,255,100))
+                    background.blit(textsurface, (length * x + length/4, height * y + height/4))
+                else:
+                    textsurface = write(grid[y][x])
+                    background.blit(textsurface, (length * x + length/4, height * y + height/4))
+        
+    #generate a coloured random coloured column or row
+    def makeHighlighted(oldhighlight=0):
         rowcol = random.randint(0,1) #determines whether to highlight a row or column
         highlight = random.randint(0,lines-1) #determines which row or column
 
@@ -77,7 +84,7 @@ def speller(msg="hello world", duration=5):
             else:
                 highlight -=1
 
-        oldhighlight = highlight
+        newhighlight = highlight
 
         for y in range(lines):
             for x in range (columns):
@@ -95,11 +102,39 @@ def speller(msg="hello world", duration=5):
                     else:
                         textsurface = write(grid[y][x])
                         background.blit(textsurface, (length * x + length/4, height * y + height/4))
-        pygame.time.delay(100) #delay 100 ms to allow for attention response
+        return(newhighlight)
+
+    #pygame uses a main loop to generate the interface
+    while mainloop:
+        milliseconds = clock.tick(FPS)  # milliseconds passed since last frame
+        seconds = milliseconds / 1000.0 # seconds passed since last frame
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                mainloop = False # pygame window closed by user
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    mainloop = False # user pressed ESC
+
+        if numtrials == 100:
+            makeTarget(targets[targetcounter])
+            numtrials = 0
+            targetcounter += 1
+            screen.blit(background, (0,0)) #clean whole screen
+            pygame.display.flip()
+            pygame.time.wait(5000)
+             
+        makeStandard()
+        oldhighlight = makeHighlighted(oldhighlight)
+
         screen.blit(background, (0,0)) # clean whole screen
         pygame.display.flip()
+        numtrials += 1
 
     pygame.quit()
 
+
+#currently the scripts are written to be run as standalone
+#routines. We should change these to work in conjunction once we get
+#the classifiers working
 if __name__=="__main__":
-    speller() 
+    train() 
