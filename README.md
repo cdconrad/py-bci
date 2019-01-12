@@ -8,7 +8,7 @@ for the BCI paradigm.
 
 TODO:
 
-1. Create a train/test routine
+1. Create a train/test routine - DONE (currently prepared for offline recording)
 2. Implement MNE's IO recording in the interface
 3. Create a working implementation of xDAWN filtering and training
 4. Pilot testing.
