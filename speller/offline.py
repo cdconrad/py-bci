@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 This is a training routine for the P3 speller. Participants are asked
@@ -7,10 +7,14 @@ is treated as a stand along instance, so is designed to save each
 instance as an epoch.
 """
 
-import pygame, random
+import pygame, random, os, sys
+
+#we will borrow PsychoPy's parallel feature to record stimulus timings using the parallel port
+from psychopy import core, parallel
+parallel.setPortAddress(61432) #61432 is the lab port address
 
 def offline():
-        
+
     pygame.init() #start pygame
 
     #specify screen and background sizes
@@ -24,10 +28,11 @@ def offline():
 
     clock = pygame.time.Clock()
     mainloop = True
-    FPS = 200 # 2 FPS should give us epochs of 500 ms
+    FPS = 3 # 2 FPS should give us epochs of 500 ms
 
     #specify the grid content
-    grid = ["ABCDEF",
+    grid = ["      ",
+            "ABCDEF",
             "GHIJKL",
             "MNOPQR",
             "STUVWX",
@@ -44,11 +49,11 @@ def offline():
 
     oldhighlight = 0
 
-    numtrials = 100
-    targets = [[1,3],[3,2],[4,1],[2,3],[4,4]]
+    numtrials = 121
+    targets = [[1,1],[3,5],[1,0],[2,2],[3,1],[0,4],[6,5]]
     targetcounter = 0
 
-    waittime = 1000
+    waittime = 3000
 
     #we will use this function to write the letters
     def write(msg, colour=(30,144,255)):
@@ -74,11 +79,12 @@ def offline():
         screen.blit(background, (0,0))
         pygame.display.flip()
 
+    #this function makes a makes a target
     def makeTarget(target):
         for y in range(lines):
             for x in range(columns):
                 if y == target[0] and x == target[1]:
-                    textsurface = write(grid[y][x],(255,255,100))
+                    textsurface = write(grid[y][x],(255,0,0))
                     background.blit(textsurface, (length * x + length/4, height * (y-1) + height/4))
                 else:
                     textsurface = write(grid[y][x])
@@ -86,9 +92,14 @@ def offline():
         writePhrase()
 
     #generate a coloured random coloured column or row
-    def makeHighlighted(oldhighlight=0):
+    def makeHighlighted(target, oldhighlight=0):
         rowcol = random.randint(0,1) #determines whether to highlight a row or column
-        highlight = random.randint(0,lines-1) #determines which row or column
+        if rowcol == 0:
+            highlight = random.randint(0,lines-1) #determines which row or column
+        else:
+            highlight = random.randint(0,columns-1)
+        print highlight
+        print target
 
         if highlight == oldhighlight: #adjusts repeated values
             if highlight == 0 or 2 or 4:
@@ -116,6 +127,31 @@ def offline():
                         background.blit(textsurface, (length * x + length/4, height * (y-1) + height/4))
 
         writePhrase()
+
+        #record on the parallel port; test to see if row is the same as target
+        if rowcol == 0: #if it is a row
+            if target[0] == highlight:
+                parallel.setData(2) #this is the target; record it in the parallel
+                print str(numtrials) + " **target row"
+                core.wait(0.005)
+                parallel.setData(0)
+            else:
+                parallel.setData(1) #this is not the target
+                print str(numtrials) + " row"
+                core.wait(0.005)
+                parallel.setData(0)
+        else: #it is a column
+            if target[1] == highlight:
+                parallel.setData(2) #this is the target; record it in the parallel
+                print str(numtrials) + " **target column"
+                core.wait(0.005)
+                parallel.setData(0)
+            else:
+                parallel.setData(1) #this is not the target
+                print str(numtrials) + " column"
+                core.wait(0.005)
+                parallel.setData(0)
+
         return(newhighlight)
 
     #pygame uses a main loop to generate the interface
@@ -129,25 +165,30 @@ def offline():
                 if event.key == pygame.K_ESCAPE:
                     mainloop = False # user pressed ESC
 
-        if targetcounter < 5: #5 test
-            
-            if numtrials == 100:
+        if targetcounter < 7:
+
+            if numtrials == 121: #120 trials for train
                 makeTarget(targets[targetcounter])
                 numtrials = 0
                 targetcounter += 1
                 screen.blit(background, (0,0)) #clean whole screen
                 pygame.display.flip()
                 pygame.time.wait(waittime)
-            
+
             makeStandard()
-            oldhighlight = makeHighlighted(oldhighlight)
+            oldhighlight = makeHighlighted(targets[targetcounter-1], oldhighlight)
 
             screen.blit(background, (0,0)) # clean whole screen
             pygame.display.flip()
             numtrials += 1
 
-        elif targetcounter < 10: #5 train
-            if numtrials == 100:
+        else:
+            break
+
+        #this part of the function will be used when we have more than just a test routine
+        '''
+        elif targetcounter < 6: #1 test
+            if numtrials == 120: #120 trials for test
                 target = [2,2] #change this to the classified value later
                 phrase = phrase + grid[target[0]][target[1]]
                 makeTarget(target)
@@ -158,12 +199,12 @@ def offline():
                 pygame.time.wait(waittime)
 
             makeStandard()
-            oldhighlight = makeHighlighted(oldhighlight)
+            oldhighlight = makeHighlighted(targets[targetcounter], oldhighlight)
 
             screen.blit(background, (0,0)) # clean whole screen
             pygame.display.flip()
             numtrials += 1
-
+        '''
     pygame.quit()
 
 
@@ -171,4 +212,4 @@ def offline():
 #routines. We should change these to work in conjunction once we get
 #the classifiers working
 if __name__=="__main__":
-    offline() 
+    offline()
