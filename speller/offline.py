@@ -28,7 +28,7 @@ def offline():
 
     clock = pygame.time.Clock()
     mainloop = True
-    FPS = 3 # 2 FPS should give us epochs of 500 ms
+    FPS = 60 # 2 FPS should give us epochs of 500 ms
 
     #specify the grid content
     grid = ["      ",
@@ -39,7 +39,7 @@ def offline():
             "YZ1234",
             "56789_"]
 
-    phrase = ""
+    phrase = "" #this is used to store the string at the bottom of the interface
 
     lines = len(grid)
     columns = len(grid[0])
@@ -49,8 +49,8 @@ def offline():
 
     oldhighlight = 0
 
-    numtrials = 121
-    targets = [[1,1],[3,5],[1,0],[2,2],[3,1],[0,4],[6,5]]
+    numtrials = 0
+    targets = [[1,1],[3,5],[1,0],[2,2],[3,1],[4,0],[6,5]]
     targetcounter = 0
 
     waittime = 3000
@@ -165,28 +165,30 @@ def offline():
                 if event.key == pygame.K_ESCAPE:
                     mainloop = False # user pressed ESC
 
-        if targetcounter < 7:
-
-            if numtrials == 121: #120 trials for train
+        if targetcounter < 6:
+            if numtrials == 0:
                 makeTarget(targets[targetcounter])
-                numtrials = 0
-                targetcounter += 1
                 screen.blit(background, (0,0)) #clean whole screen
                 pygame.display.flip()
                 pygame.time.wait(waittime)
+                numtrials += 1
+            elif numtrials == 121:
+                targetcounter += 1
+                numtrials = 0
+            else:
+                makeStandard()
+                oldhighlight = makeHighlighted(targets[targetcounter-1], oldhighlight)
 
-            makeStandard()
-            oldhighlight = makeHighlighted(targets[targetcounter-1], oldhighlight)
-
-            screen.blit(background, (0,0)) # clean whole screen
-            pygame.display.flip()
-            numtrials += 1
+                screen.blit(background, (0,0)) # clean whole screen
+                pygame.display.flip()
+                numtrials += 1
 
         else:
-            break
+            pygame.quit()
 
-        #this part of the function will be used when we have more than just a test routine
         '''
+        #this part of the function will be used when we have more than just a test routine
+
         elif targetcounter < 6: #1 test
             if numtrials == 120: #120 trials for test
                 target = [2,2] #change this to the classified value later
@@ -205,7 +207,6 @@ def offline():
             pygame.display.flip()
             numtrials += 1
         '''
-    pygame.quit()
 
 
 #currently the scripts are written to be run as standalone
