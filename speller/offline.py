@@ -11,7 +11,7 @@ import pygame, random, os, sys
 
 #we will borrow PsychoPy's parallel feature to record stimulus timings using the parallel port
 from psychopy import core, parallel
-#parallel.setPortAddress(61432) 61432 is the NCIL lab port address
+#parallel.setPortAddress(61432) #61432 is the lab port address
 
 def offline():
 
@@ -28,7 +28,7 @@ def offline():
 
     clock = pygame.time.Clock()
     mainloop = True
-    FPS = 3 # 2 FPS should give us epochs of 500 ms
+    FPS = 50 # 2 FPS should give us epochs of 500 ms
 
     #specify the grid content
     grid = ["      ",
@@ -98,8 +98,6 @@ def offline():
             highlight = random.randint(0,lines-1) #determines which row or column
         else:
             highlight = random.randint(0,columns-1)
-        print(highlight)
-        print(target)
 
         if highlight == oldhighlight: #adjusts repeated values
             if highlight == 0 or 2 or 4:
@@ -129,29 +127,37 @@ def offline():
         writePhrase()
 
         #record on the parallel port; test to see if row is the same as target
-        #only use this when recording on an EEG!
         if rowcol == 0: #if it is a row
             if target[0] == highlight:
                 #parallel.setData(2) #this is the target; record it in the parallel
-                print(str(numtrials) + " **target row")
+                print(highlight)
+                print(target)
+                print(str(numtrials)) + " **target row"
                 core.wait(0.005)
                 #parallel.setData(0)
             else:
                 #parallel.setData(1) #this is not the target
-                print(str(numtrials) + " row")
+                print(highlight)
+                print(target)
+                print(str(numtrials)) + " row"
                 core.wait(0.005)
                 #parallel.setData(0)
         else: #it is a column
             if target[1] == highlight:
                 #parallel.setData(2) #this is the target; record it in the parallel
-                print(str(numtrials) + " **target column")
+                print(highlight)
+                print(target)
+                print(str(numtrials)) + " **target column"
                 core.wait(0.005)
                 #parallel.setData(0)
             else:
                 #parallel.setData(1) #this is not the target
-                print(str(numtrials) + " column")
+                print(highlight)
+                print(target)
+                print(str(numtrials)) + " column"
                 core.wait(0.005)
                 #parallel.setData(0)
+
         return(newhighlight)
 
     #pygame uses a main loop to generate the interface
@@ -177,7 +183,7 @@ def offline():
                 numtrials = 0
             else:
                 makeStandard()
-                oldhighlight = makeHighlighted(targets[targetcounter-1], oldhighlight)
+                oldhighlight = makeHighlighted(targets[targetcounter], oldhighlight)
 
                 screen.blit(background, (0,0)) # clean whole screen
                 pygame.display.flip()
