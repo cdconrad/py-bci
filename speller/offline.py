@@ -1,10 +1,34 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-This is a training routine for the P3 speller. Participants are asked
-to attend to a certain letter on a grid. Each grid that is generated
-is treated as a stand along instance, so is designed to save each
-instance as an epoch.
+This is a training routine for a P3 speller based on Farwell and Donchin (1988).
+Participants are asked to attend to a certain letter on a grid. Rows and columns
+will then light up. When the rows or columns highlight the attended letter, a P3
+response should be elicited.
+
+This program is written in Pygame, though uses the Psychopy Pythong library to
+interact with the Dalhousie NCIL EEG setup. Pygame was deliberately chosen to
+demonstrate one of the key features of the Python stack, which is its porability.
+Pygame is generally used to create video games, and by using it, we demonstrate
+how the stack can be used to conduct unconventional neuroscience experiments.
+
+In this program, a series of grids are generated at the rate specified by the
+programmer (500 ms by default). Each grid has a random row or column highlighted.
+If the row or column highlights the target letter, the grid triggers the 'target'
+response on the EEG's parallel port. If not, they are assigned standard responses.
+
+This program was originally designed for demonstration purposes, but can be used
+as a foundation to a finished P300 BCI. In this tutorial, we only demonstrate the
+training routine. To complete the BCI, a programmer needs to implement
+classifiers and create a separate implementation routine that changes with the
+classifiers. Future iterations of this tutorial may consider implementing the
+full BCI.
+
+REFERENCES
+
+Farwell, L. A., & Donchin, E. (1988). Talking off the top of your head: toward a
+mental prosthesis utilizing event-related brain potentials.
+Electroencephalography and clinical Neurophysiology, 70(6), 510-523.
 """
 
 import pygame, random, os, sys
@@ -192,31 +216,9 @@ def offline():
         else:
             pygame.quit()
 
-        '''
-        #this part of the function will be used when we have more than just a test routine
-
-        elif targetcounter < 6: #1 test
-            if numtrials == 120: #120 trials for test
-                target = [2,2] #change this to the classified value later
-                phrase = phrase + grid[target[0]][target[1]]
-                makeTarget(target)
-                numtrials = 0
-                targetcounter += 1
-                screen.blit(background, (0,0))
-                pygame.display.flip()
-                pygame.time.wait(waittime)
-
-            makeStandard()
-            oldhighlight = makeHighlighted(targets[targetcounter], oldhighlight)
-
-            screen.blit(background, (0,0)) # clean whole screen
-            pygame.display.flip()
-            numtrials += 1
-        '''
-
 
 #currently the scripts are written to be run as standalone
 #routines. We should change these to work in conjunction once we get
-#the classifiers working
+#the classifiers working sometime in the future.
 if __name__=="__main__":
     offline()
