@@ -52,7 +52,7 @@ def offline():
 
     clock = pygame.time.Clock()
     mainloop = True
-    FPS = 50 # 2 FPS should give us epochs of 500 ms
+    FPS = 2 # 2 FPS should give us epochs of 500 ms
 
     #specify the grid content
     grid = ["      ",
